@@ -1,3 +1,5 @@
+using CoinbaseTelemetryMonitor.Hubs;
+using CoinbaseTelemetryMonitor.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -5,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace CoinbaseTelemetryMonitor
 {
@@ -22,6 +25,9 @@ namespace CoinbaseTelemetryMonitor
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
+            services.AddSignalR();
+            services.AddSingleton<IHostedService, CoinbaseWebSocketService>();
+
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -30,7 +36,7 @@ namespace CoinbaseTelemetryMonitor
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -45,7 +51,10 @@ namespace CoinbaseTelemetryMonitor
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
-
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<TickerHub>("/tickerHub");
+            });
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
