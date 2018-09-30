@@ -18,7 +18,7 @@ namespace CoinbaseTelemetryMonitor.Services
         public CoinbaseProClient Client { get; private set; }
         public List<ProductType> ProductTypes { get; private set; }
         public List<ChannelType> ChannelTypes { get; private set; }
-
+        private Timer connectionCheckTimer;
         private IHubContext<TickerHub> _hubContext;
 
         public CoinbaseWebSocketService(IHubContext<TickerHub> hubContext)
@@ -31,10 +31,23 @@ namespace CoinbaseTelemetryMonitor.Services
             ProductTypes = new List<ProductType>() { ProductType.BtcUsd };
             ChannelTypes = new List<ChannelType>() { ChannelType.Ticker };
 
+            connectionCheckTimer = new Timer(
+            callback: new TimerCallback(CheckConnection),
+            state: null,
+            dueTime: 3000,
+            period: 3000);
+
             // EventHandler for the heartbeat response type
             Client.WebSocket.OnTickerReceived += WebSocket_OnTickerReceived;
         }
 
+        private void CheckConnection(object timerState)
+        {
+            if (Client.WebSocket.State == WebSocket4Net.WebSocketState.Closed)
+            {
+                Client.WebSocket.Start(ProductTypes, ChannelTypes);
+            }
+        }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {

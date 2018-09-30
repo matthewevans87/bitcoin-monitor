@@ -1,41 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild  } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { Ticker } from '../../models/ticker';
 import { TickerDataService } from '../../services/ticker-data.service';
 import { Subject, Observable } from 'rxjs';
+import { Chart } from 'chart.js';
 
 @Component({
   selector: 'app-ticker-chart',
   templateUrl: './ticker-chart.component.html',
   styleUrls: ['./ticker-chart.component.css']
 })
-export class TickerChartComponent implements OnInit {
+export class TickerChartComponent implements OnInit, AfterViewInit {
 
   public latestTicker: Ticker = undefined;
   public numberOfPoints = 25;
-
-  public dataPoints: any[] = [
-    {
-      'name': 'Price',
-      'series': []
-    }
-  ];
-
-  view: any[] = [1200, 400];
-
-  // options
-  showXAxis = true;
-  showYAxis = true;
-  gradient = false;
-  showLegend = true;
-  showXAxisLabel = true;
-  xAxisLabel = 'Time';
-  showYAxisLabel = true;
-  yAxisLabel = 'USD';
-
-  colorScheme = {
-    domain: ['#5AA454', '#A10A28', '#C7B42C', '#AAAAAA']
-  };
-
+  public chart: Chart;
+  public dataPoints: number[] = [];
+  public labels: any[] = [];
+  @ViewChild('canvas') canvas: ElementRef;
 
   constructor(private tickerDataService: TickerDataService) {
   }
@@ -50,18 +32,67 @@ export class TickerChartComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    const context = this.canvas.nativeElement.getContext('2d');
+    setTimeout(() => {
+      this.chart = new Chart(context, {
+        type: 'line',
+        data: {
+          labels: this.labels,
+          datasets: [
+            {
+              lineTension: 0,
+              data: this.dataPoints,
+              borderColor: '#3cba9f',
+              fill: false
+            },
+          ]
+        },
+        options: {
+          legend: {
+            display: false
+          },
+          scales: {
+            xAxes: [{
+              type: 'time',
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'Time'
+              }
+            }],
+            yAxes: [{
+              ticks: {
+                  // Include a dollar sign in the ticks
+                  callback: function(value, index, values) {
+                    const currencyPipe = new CurrencyPipe('en-US');
+                    return currencyPipe.transform(value, 'USD');
+                  }
+              },
+              display: true,
+              scaleLabel: {
+                display: true,
+                labelString: 'USD'
+              }
+            }],
+          }
+        }
+      });
+    });
+
+  }
+
   private addTickerToChart(ticker: Ticker): void {
 
-    const entry = {
-      name: ticker.time,
-      value: ticker.price
-    };
+    this.dataPoints.push(ticker.price);
+    this.labels.push(ticker.time);
 
-    this.dataPoints[0].series = [...this.dataPoints[0].series, entry];
-    this.dataPoints = this.dataPoints.slice();
-    if (this.dataPoints[0].series.length >= this.numberOfPoints) {
-      this.dataPoints[0].series.splice(0, 1);
+    if (this.dataPoints.length >= this.numberOfPoints) {
+      this.dataPoints.splice(0, 1);
+      this.labels.splice(0, 1);
+
     }
+    this.chart.update();
   }
 
 

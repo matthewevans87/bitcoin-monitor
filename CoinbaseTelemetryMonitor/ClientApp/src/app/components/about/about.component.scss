@@ -1,0 +1,21 @@
+.section {
+    margin-bottom: 2em;
+}
+.card {
+    color: rgb(33, 37, 41);
+    a, a:active, a:hover {
+        color: rgb(33, 37, 41);
+    }
+    ul.technologies {
+        list-style: none;
+        text-align: left;
+        li {
+            padding: .5em;
+
+            img {
+                width: 2.5em;
+            }
+        }
+    
+    }
+}

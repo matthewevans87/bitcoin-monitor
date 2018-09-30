@@ -1,24 +1,13 @@
-<h1 class="cover-heading">Ticker Chart</h1>
-<div class="lead">
-    <div *ngIf="latestTicker != undefined">
-        <span>
-            {{latestTicker.price | currency}} per Bitcoin as of {{latestTicker.time | date:'medium'}}
-        </span>
-        <ngx-charts-line-chart
-        [view]="view"
-        [scheme]="colorScheme"
-        [results]="dataPoints"
-        [gradient]="gradient"
-        [xAxis]="showXAxis"
-        [yAxis]="showYAxis"
-        [legend]="showLegend"
-        [showXAxisLabel]="showXAxisLabel"
-        [showYAxisLabel]="showYAxisLabel"
-        [xAxisLabel]="xAxisLabel"
-        [yAxisLabel]="yAxisLabel"
-        (select)="onSelect($event)"
-        [timeline]="true"
-        [autoScale]="true">
-      </ngx-charts-line-chart>
-    </div>
+<div class="text-center">
+        <h1 class="cover-heading">Ticker Chart</h1>
+        <div class="lead">
+            <div *ngIf="latestTicker != undefined">
+                <span>
+                    {{latestTicker.price | currency}} per Bitcoin as of {{latestTicker.time | date:'medium'}}
+                </span>
+            </div>
+            <div>
+                <canvas #canvas>{{ chart }}</canvas>
+            </div>
+        </div>
 </div>
